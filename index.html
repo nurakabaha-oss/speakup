@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>SpeakUp! - English Speaking Practice</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary: #4F8EF7;
+      --secondary: #FF6B6B;
+      --success: #51CF66;
+      --warning: #FFD43B;
+      --purple: #9775FA;
+      --bg: #F0F4FF;
+      --text: #2C3E50;
+      --light: #8395A7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { min-height: 100vh; overflow-x: hidden; }
+    body { font-family: 'Nunito', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+    #lang-toggle {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: white; border: 2px solid var(--primary);
+      color: var(--primary); border-radius: 20px;
+      padding: 6px 14px; cursor: pointer; font-weight: 700; font-size: 13px;
+      box-shadow: 0 2px 8px rgba(79,142,247,.15); font-family: inherit;
+    }
+
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: block; }
+
+    /* HOME */
+    #home-screen {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 60px 20px 40px; text-align: center;
+    }
+    #home-screen.active { display: flex; }
+    .logo-icon { font-size: 64px; animation: bounce 2s infinite; margin-bottom: 8px; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .logo-title { font-size: 40px; font-weight: 900; color: white; }
+    .logo-sub { font-size: 16px; color: rgba(255,255,255,.85); margin-top: 4px; margin-bottom: 28px; }
+    .home-card {
+      background: white; border-radius: 24px; padding: 28px 24px;
+      width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .home-card h2 { font-size: 20px; margin-bottom: 6px; }
+    .home-card p { color: var(--light); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+    .grade-btns { display: flex; gap: 10px; margin-bottom: 16px; }
+    .grade-btn {
+      flex: 1; padding: 14px 8px; border: 3px solid #e0e7ff;
+      background: #f8f9ff; border-radius: 14px; cursor: pointer;
+      font-size: 15px; font-weight: 700; color: var(--primary); transition: all .2s; font-family: inherit;
+    }
+    .grade-btn.selected { background: var(--primary); color: white; border-color: var(--primary); }
+    .inp {
+      width: 100%; padding: 13px 14px; border: 2px solid #e0e7ff;
+      border-radius: 12px; font-size: 16px; outline: none;
+      transition: border-color .2s; margin-bottom: 14px; font-family: inherit;
+    }
+    .inp:focus { border-color: var(--primary); }
+    .btn-main {
+      width: 100%; padding: 15px; background: linear-gradient(135deg, #4F8EF7, #764ba2);
+      color: white; border: none; border-radius: 14px;
+      font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+    .teacher-link { margin-top: 14px; font-size: 13px; color: var(--light); }
+    .teacher-link a { color: var(--primary); text-decoration: none; font-weight: 700; }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.55); z-index: 500;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: white; border-radius: 20px; padding: 28px 24px;
+      width: 100%; max-width: 400px; text-align: center;
+    }
+    .modal-box h3 { font-size: 20px; margin-bottom: 6px; }
+    .modal-box p { color: var(--light); font-size: 13px; margin-bottom: 18px; }
+    .modal-btns { display: flex; gap: 10px; }
+    .btn-cancel { flex:1; padding:12px; background:#f0f4ff; color:var(--primary); border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .btn-confirm { flex:1; padding:12px; background:var(--primary); color:white; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .modal-err { color: var(--secondary); font-size: 13px; margin-top: 8px; display: none; }
+
+    /* TASK FORM MODAL */
+    #task-form-modal .modal-box { max-width:500px; text-align:left; max-height:90vh; overflow-y:auto; }
+    #task-form-modal .modal-box h3 { margin-bottom:16px; }
+    .form-group { margin-bottom:14px; }
+    .form-label { font-size:13px; font-weight:700; color:var(--light); margin-bottom:5px; display:block; }
+    .form-inp, .form-select, .form-textarea {
+      width:100%; padding:11px 13px; border:2px solid #e0e7ff;
+      border-radius:11px; font-size:14px; outline:none; transition:border-color .2s; font-family:inherit;
+    }
+    .form-inp:focus, .form-select:focus, .form-textarea:focus { border-color:var(--primary); }
+    .form-textarea { min-height:80px; resize:vertical; }
+
+    /* TEST SELECT */
+    #test-select-screen { padding: 16px; max-width: 720px; margin: 0 auto; }
+    .top-bar { display:flex; align-items:center; gap:10px; margin-bottom:20px; padding-top:50px; }
+    .back-btn { background:white; border:2px solid #e0e7ff; color:var(--primary); border-radius:12px; padding:8px 14px; cursor:pointer; font-weight:700; font-size:14px; font-family:inherit; }
+    .greeting-name { font-size: 20px; font-weight: 800; }
+    .task-only-banner {
+      background: linear-gradient(135deg,#667eea,#764ba2); color:white;
+      border-radius:14px; padding:14px 16px; margin-bottom:16px;
+      font-size:14px; font-weight:700; display:none; align-items:center; gap:10px;
+    }
+    .task-only-banner.show { display: flex; }
+    .filter-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; }
+    .ftab {
+      padding:7px 14px; border:2px solid #e0e7ff; background:white;
+      border-radius:20px; cursor:pointer; font-size:12px; font-weight:700;
+      color:var(--light); white-space:nowrap; transition:all .15s; font-family:inherit;
+    }
+    .ftab.active { background:var(--primary); color:white; border-color:var(--primary); }
+    .tests-grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr)); }
+    .test-card {
+      background:white; border-radius:18px; padding:18px;
+      cursor:pointer; border:3px solid transparent;
+      box-shadow:0 3px 12px rgba(0,0,0,.08); transition:all .2s;
+    }
+    .test-card:active { transform:scale(.97); }
+    @media (hover:hover) { .test-card:hover { transform:translateY(-3px); border-color:var(--primary); box-shadow:0 10px 28px rgba(0,0,0,.13); } }
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px; }
+    .b-qa    { background:#e8f4ff; color:#2563eb; }
+    .b-read  { background:#fef9c3; color:#854d0e; }
+    .b-story { background:#f0fdf4; color:#166534; }
+    .b-desc  { background:#fdf4ff; color:#7e22ce; }
+    .test-card h3 { font-size:16px; margin-bottom:5px; }
+    .test-card p  { color:var(--light); font-size:13px; line-height:1.45; }
+    .test-time    { margin-top:10px; font-size:12px; color:var(--primary); font-weight:700; }
+
+    /* SPEAKING */
+    #speaking-screen { padding:16px; max-width:680px; margin:0 auto; }
+    .prompt-box { background:white; border-radius:18px; padding:20px; margin-bottom:16px; box-shadow:0 3px 12px rgba(0,0,0,.08); }
+    .prompt-label { font-size:11px; font-weight:700; color:var(--purple); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+    .prompt-text  { font-size:18px; font-weight:600; line-height:1.5; }
+    .timer-box { background:white; border-radius:18px; padding:16px; text-align:center; margin-bottom:16px; box-shadow:0 3px 12px rgba(0,0,0,.08); }
+    .timer-num { font-size:52px; font-weight:900; color:var(--primary); font-variant-numeric:tabular-nums; }
+    .timer-num.warn { color:var(--secondary); animation:blink 1s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .rec-row { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:6px; font-size:13px; color:var(--light); font-weight:600; }
+    .rec-dot { width:10px; height:10px; border-radius:50%; background:#ccc; }
+    .rec-dot.on { background:var(--secondary); animation:blink 1s infinite; }
+    .transcript-box { background:#f8f9ff; border:2px solid #e0e7ff; border-radius:14px; padding:14px; margin-bottom:16px; min-height:70px; font-size:14px; line-height:1.6; }
+    .mic-wrap { display:flex; justify-content:center; margin-bottom:16px; }
+    .mic-btn { width:76px; height:76px; border-radius:50%; border:none; font-size:30px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.15); transition:all .2s; }
+    .mic-btn.idle      { background:var(--primary); }
+    .mic-btn.recording { background:var(--secondary); animation:ring 1.5s infinite; }
+    .mic-btn.done      { background:var(--success); }
+    @keyframes ring { 0%{box-shadow:0 0 0 0 rgba(255,107,107,.5)} 70%{box-shadow:0 0 0 18px rgba(255,107,107,0)} 100%{box-shadow:0 0 0 0 rgba(255,107,107,0)} }
+    .submit-wrap { text-align:center; }
+    .submit-btn { padding:15px 36px; background:var(--success); color:white; border:none; border-radius:14px; font-size:17px; font-weight:700; cursor:pointer; display:none; font-family:inherit; }
+    .submit-btn.show { display:inline-block; }
+
+    /* RESULTS */
+    #results-screen { padding:16px; max-width:680px; margin:0 auto; }
+    .res-header { background:linear-gradient(135deg,#4F8EF7,#764ba2); border-radius:22px; padding:24px; text-align:center; color:white; margin-bottom:16px; }
+    .res-header h2 { font-size:20px; }
+    .res-name { font-size:14px; opacity:.85; margin-top:2px; }
+    .score-ring { width:110px; height:110px; border-radius:50%; background:rgba(255,255,255,.2); border:4px solid rgba(255,255,255,.5); display:flex; flex-direction:column; align-items:center; justify-content:center; margin:16px auto 0; }
+    .ring-num { font-size:38px; font-weight:900; }
+    .ring-den { font-size:13px; opacity:.8; }
+    .scores-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+    .sc-card { background:white; border-radius:14px; padding:14px; box-shadow:0 3px 10px rgba(0,0,0,.07); }
+    .sc-label { font-size:12px; color:var(--light); font-weight:700; margin-bottom:6px; }
+    .sc-bar-bg { height:9px; background:#e9ecef; border-radius:9px; overflow:hidden; }
+    .sc-bar { height:100%; border-radius:9px; transition:width 1s ease; width:0; }
+    .bf { background:linear-gradient(90deg,#4F8EF7,#764ba2); }
+    .bv { background:linear-gradient(90deg,#51CF66,#20c997); }
+    .bg { background:linear-gradient(90deg,#FF6B6B,#FF8E53); }
+    .bp { background:linear-gradient(90deg,#FFD43B,#FF922B); }
+    .sc-val { font-size:17px; font-weight:800; margin-top:5px; }
+    .stats-row { display:flex; gap:10px; margin-bottom:14px; }
+    .stat-pill { flex:1; background:white; border-radius:12px; padding:10px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+    .stat-n { font-size:20px; font-weight:800; color:var(--primary); }
+    .stat-l { font-size:11px; color:var(--light); }
+    .feedback-box { background:white; border-radius:14px; padding:16px; margin-bottom:14px; border-left:4px solid var(--primary); box-shadow:0 3px 10px rgba(0,0,0,.07); }
+    .feedback-box h3 { font-size:14px; margin-bottom:6px; }
+    .feedback-box p  { font-size:14px; line-height:1.6; }
+    .transcript-res { background:#f8f9ff; border-radius:14px; padding:14px; margin-bottom:14px; font-size:13px; line-height:1.7; color:var(--light); }
+    .transcript-res strong { color:var(--text); display:block; margin-bottom:4px; font-size:13px; }
+    .action-row { display:flex; gap:10px; }
+    .btn-retry { flex:1; padding:13px; background:var(--primary); color:white; border:none; border-radius:13px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .btn-home2 { flex:1; padding:13px; background:white; color:var(--primary); border:2px solid var(--primary); border-radius:13px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; }
+
+    /* TEACHER */
+    #teacher-screen { padding:16px; max-width:1000px; margin:0 auto; }
+    .t-header { background:linear-gradient(135deg,#20c997,#0ca678); border-radius:18px; padding:20px; color:white; margin-bottom:20px; }
+    .t-header-row { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; }
+    .t-header h2 { font-size:22px; font-weight:800; }
+    .t-header p  { opacity:.85; font-size:14px; margin-top:2px; }
+    .btn-excel { background:white; color:#0ca678; border:none; border-radius:11px; padding:10px 18px; font-weight:700; font-size:14px; cursor:pointer; white-space:nowrap; font-family:inherit; }
+    .t-tabs { display:flex; gap:8px; margin-bottom:20px; }
+    .t-tab { padding:10px 20px; border:2px solid #e0e7ff; background:white; border-radius:12px; cursor:pointer; font-size:14px; font-weight:700; color:var(--light); transition:all .15s; font-family:inherit; }
+    .t-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+    .t-panel { display:none; }
+    .t-panel.active { display:block; }
+    .t-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+    .t-filter-inp { padding:8px 12px; border:2px solid #e0e7ff; border-radius:10px; font-size:14px; outline:none; font-family:inherit; }
+    .t-filter-inp:focus { border-color:#20c997; }
+    .results-table { background:white; border-radius:16px; overflow:hidden; box-shadow:0 3px 12px rgba(0,0,0,.08); overflow-x:auto; }
+    .results-table table { width:100%; border-collapse:collapse; min-width:600px; }
+    .results-table th { background:#f0fdf4; padding:11px 14px; text-align:left; font-size:12px; color:#0ca678; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+    .results-table td { padding:11px 14px; border-top:1px solid #f0f4ff; font-size:13px; }
+    .results-table tr:hover td { background:#f8f9ff; }
+    .sbadge { display:inline-block; padding:3px 9px; border-radius:20px; font-weight:700; font-size:12px; }
+    .s-hi  { background:#d3f9d8; color:#2f9e44; }
+    .s-mid { background:#fff3bf; color:#e67700; }
+    .s-lo  { background:#ffe3e3; color:#c92a2a; }
+
+    /* TASK MANAGER */
+    .task-mgr-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+    .task-mgr-header h3 { font-size:18px; font-weight:800; }
+    .btn-add-task { background:var(--primary); color:white; border:none; border-radius:12px; padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .task-list { display:grid; gap:12px; }
+    .task-item { background:white; border-radius:16px; padding:16px; box-shadow:0 3px 10px rgba(0,0,0,.07); border:2px solid transparent; transition:border-color .2s; }
+    .task-item.hidden-task { opacity:.55; border-color:#e0e7ff; }
+    .task-item-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .task-item-info { flex:1; min-width:0; }
+    .task-item-info h4 { font-size:15px; font-weight:800; margin-bottom:4px; }
+    .task-item-info p { font-size:13px; color:var(--light); line-height:1.4; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:400px; }
+    .task-meta { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .task-actions { display:flex; gap:6px; flex-shrink:0; flex-wrap:wrap; }
+    .task-btn { padding:6px 12px; border-radius:9px; border:none; cursor:pointer; font-size:12px; font-weight:700; font-family:inherit; transition:all .15s; }
+    .task-btn-link { background:#e8f4ff; color:#2563eb; }
+    .task-btn-edit { background:#fff3bf; color:#e67700; }
+    .task-btn-hide { background:#f0f4ff; color:var(--light); }
+    .task-btn-del  { background:#ffe3e3; color:#c92a2a; }
+
+    .link-copied { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#2C3E50; color:white; border-radius:12px; padding:12px 20px; font-size:14px; font-weight:700; opacity:0; transition:opacity .3s; pointer-events:none; z-index:1000; white-space:nowrap; }
+    .link-copied.show { opacity:1; }
+
+    .spinner-wrap { display:flex; align-items:center; justify-content:center; gap:10px; padding:50px; color:var(--light); }
+    .spin { width:26px; height:26px; border:3px solid #e0e7ff; border-top-color:var(--primary); border-radius:50%; animation:rot .8s linear infinite; }
+    @keyframes rot { to{transform:rotate(360deg)} }
+    .empty-state { padding:40px; text-align:center; color:var(--light); }
+
+    @media (max-width:480px) {
+      .logo-title { font-size:32px; }
+      .scores-grid { grid-template-columns:1fr; }
+      .action-row { flex-direction:column; }
+      .timer-num { font-size:44px; }
+      .prompt-text { font-size:16px; }
+      .tests-grid { grid-template-columns:1fr; }
+      .task-item-info p { max-width:180px; }
+    }
+  </style>
+</head>
+<body>
+
+<button id="lang-toggle" onclick="toggleLang()">عربي</button>
+
+<!-- TEACHER LOGIN MODAL -->
+<div class="modal-overlay" id="teacher-modal">
+  <div class="modal-box">
+    <div style="font-size:40px;margin-bottom:8px;">🔐</div>
+    <h3 data-en="Teacher Access" data-ar="دخول المعلم">Teacher Access</h3>
+    <p data-en="Enter the teacher password to view the dashboard." data-ar="أدخل كلمة مرور المعلم.">Enter the teacher password to view the dashboard.</p>
+    <input type="password" class="inp" id="teacher-pw-input" placeholder="Password..." onkeydown="if(event.key==='Enter')checkTeacherPw()"/>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeTeacherModal()">Cancel</button>
+      <button class="btn-confirm" onclick="checkTeacherPw()">Enter →</button>
+    </div>
+    <div class="modal-err" id="pw-err">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- TASK FORM MODAL -->
+<div class="modal-overlay" id="task-form-modal">
+  <div class="modal-box">
+    <h3 id="task-form-title">➕ Add New Task</h3>
+    <div class="form-group">
+      <label class="form-label">Task Title</label>
+      <input class="form-inp" id="tf-title" type="text" placeholder="e.g. My Favourite Animal"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Prompt / Instructions</label>
+      <textarea class="form-textarea" id="tf-prompt" placeholder="e.g. Talk about your favourite animal..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Task Type</label>
+      <select class="form-select" id="tf-type">
+        <option value="answer_question">💬 Q&A</option>
+        <option value="read_aloud">📖 Read Aloud</option>
+        <option value="tell_story">📚 Tell a Story</option>
+        <option value="describe_image">🖼️ Describe</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Grade</label>
+      <select class="form-select" id="tf-grade">
+        <option value="Grade 5">Grade 5</option>
+        <option value="Grade 6">Grade 6</option>
+        <option value="both">Grade 5 & 6</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Time Limit (seconds)</label>
+      <input class="form-inp" id="tf-time" type="number" value="60" min="15" max="300"/>
+    </div>
+    <div class="modal-btns" style="margin-top:6px;">
+      <button class="btn-cancel" onclick="closeTaskForm()">Cancel</button>
+      <button class="btn-confirm" onclick="saveTask()">Save Task ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home-screen" class="screen active">
+  <div class="logo-icon">🎤</div>
+  <div class="logo-title" data-en="SpeakUp!" data-ar="تكلّم!">SpeakUp!</div>
+  <div class="logo-sub" data-en="English Speaking Practice" data-ar="تدرّب على التحدث بالإنجليزية">English Speaking Practice</div>
+  <div class="home-card">
+    <h2 data-en="Let's get started! 🚀" data-ar="هيا نبدأ! 🚀">Let's get started! 🚀</h2>
+    <p data-en="Choose your grade and enter your name." data-ar="اختر صفك وأدخل اسمك.">Choose your grade and enter your name.</p>
+    <div class="grade-btns">
+      <button class="grade-btn" id="g5btn" onclick="selectGrade('Grade 5')" data-en="Grade 5" data-ar="الصف الخامس">Grade 5</button>
+      <button class="grade-btn" id="g6btn" onclick="selectGrade('Grade 6')" data-en="Grade 6" data-ar="الصف السادس">Grade 6</button>
+    </div>
+    <input class="inp" id="sname" type="text" data-placeholder-en="Your name..." data-placeholder-ar="اسمك..." placeholder="Your name..." autocomplete="given-name"/>
+    <button class="btn-main" onclick="startApp()">
+      <span data-en="Start Practising →" data-ar="ابدأ التدريب →">Start Practising →</span>
+    </button>
+    <div class="teacher-link">
+      <span data-en="Teacher?" data-ar="معلم/ة؟">Teacher?</span>
+      <a href="#" onclick="openTeacherModal();return false;" data-en="View Dashboard →" data-ar="لوحة التحكم →">View Dashboard →</a>
+    </div>
+  </div>
+</div>
+
+<!-- TEST SELECT -->
+<div id="test-select-screen" class="screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+    <div class="greeting-name">
+      <span data-en="Hi" data-ar="أهلاً">Hi</span>,
+      <span id="name-display" style="color:var(--primary);"></span> 👋
+    </div>
+  </div>
+  <div id="task-only-banner" class="task-only-banner">
+    <span>📌</span><span id="task-only-text"></span>
+  </div>
+  <p style="color:var(--light);font-size:14px;margin-bottom:14px;" data-en="Choose a topic and practise as many times as you like!" data-ar="اختر موضوعاً وتدرّب بقدر ما تشاء!">Choose a topic and practise as many times as you like!</p>
+  <div id="filter-row-wrap" class="filter-row">
+    <button class="ftab active" onclick="filterTests('all')" data-filter="all">🎯 All</button>
+    <button class="ftab" onclick="filterTests('answer_question')" data-filter="answer_question">💬 Q&A</button>
+    <button class="ftab" onclick="filterTests('read_aloud')" data-filter="read_aloud">📖 Read Aloud</button>
+    <button class="ftab" onclick="filterTests('tell_story')" data-filter="tell_story">📚 Story</button>
+    <button class="ftab" onclick="filterTests('describe_image')" data-filter="describe_image">🖼️ Describe</button>
+  </div>
+  <div class="tests-grid" id="tests-grid"></div>
+</div>
+
+<!-- SPEAKING -->
+<div id="speaking-screen" class="screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="stopRec();showScreen('test-select-screen')">←</button>
+    <div style="font-weight:700;font-size:15px;" id="spk-title"></div>
+  </div>
+  <div class="prompt-box">
+    <div class="prompt-label" data-en="YOUR TOPIC" data-ar="موضوعك">YOUR TOPIC</div>
+    <div class="prompt-text" id="prompt-text"></div>
+  </div>
+  <div id="no-support" style="display:none;background:#fff3cd;border:1px solid #ffc107;border-radius:12px;padding:14px;margin-bottom:14px;font-size:13px;color:#856404;">
+    ⚠️ Speech recognition requires Chrome or Edge on desktop/Android.
+  </div>
+  <div class="timer-box">
+    <div class="timer-num" id="timer-num">0:00</div>
+    <div class="rec-row">
+      <div class="rec-dot" id="rec-dot"></div>
+      <span id="rec-status">Tap the mic to start</span>
+    </div>
+  </div>
+  <div class="transcript-box" id="transcript-box">
+    <span style="color:var(--light);font-style:italic;">Your words will appear here as you speak...</span>
+  </div>
+  <div class="mic-wrap">
+    <button class="mic-btn idle" id="mic-btn" onclick="toggleRec()">🎤</button>
+  </div>
+  <div class="submit-wrap">
+    <button class="submit-btn" id="submit-btn" onclick="submitSpeech()">Get My Score! ⭐</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results-screen" class="screen">
+  <div class="top-bar" style="padding-top:50px;margin-bottom:14px;">
+    <button class="back-btn" onclick="showScreen('test-select-screen')">←</button>
+    <span style="font-weight:700;" data-en="Your Results" data-ar="نتائجك">Your Results</span>
+  </div>
+  <div class="res-header">
+    <h2 data-en="Great job! 🎉" data-ar="عمل رائع! 🎉">Great job! 🎉</h2>
+    <div class="res-name" id="res-name"></div>
+    <div class="score-ring">
+      <div class="ring-num" id="ring-num">--</div>
+      <div class="ring-den">/9</div>
+    </div>
+  </div>
+  <div class="scores-grid">
+    <div class="sc-card"><div class="sc-label">🗣️ Fluency</div><div class="sc-bar-bg"><div class="sc-bar bf" id="bf"></div></div><div class="sc-val" id="vf">--/9</div></div>
+    <div class="sc-card"><div class="sc-label">📚 Vocabulary</div><div class="sc-bar-bg"><div class="sc-bar bv" id="bv"></div></div><div class="sc-val" id="vv">--/9</div></div>
+    <div class="sc-card"><div class="sc-label">✏️ Grammar</div><div class="sc-bar-bg"><div class="sc-bar bg" id="bgr"></div></div><div class="sc-val" id="vg">--/9</div></div>
+    <div class="sc-card"><div class="sc-label">🔊 Pronunciation</div><div class="sc-bar-bg"><div class="sc-bar bp" id="bp"></div></div><div class="sc-val" id="vp">--/9</div></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-pill"><div class="stat-n" id="s-words">-</div><div class="stat-l">Words</div></div>
+    <div class="stat-pill"><div class="stat-n" id="s-wpm">-</div><div class="stat-l">Words/min</div></div>
+    <div class="stat-pill"><div class="stat-n" id="s-secs">-</div><div class="stat-l">Seconds</div></div>
+  </div>
+  <div class="feedback-box">
+    <h3>💬 Feedback</h3>
+    <p id="feedback-p"></p>
+  </div>
+  <div class="transcript-res">
+    <strong>What you said:</strong>
+    <span id="transcript-res-text"></span>
+  </div>
+  <div class="action-row">
+    <button class="btn-retry" onclick="retryTest()">🔄 Try Again</button>
+    <button class="btn-home2" onclick="showScreen('home-screen')">🏠 Home</button>
+  </div>
+</div>
+
+<!-- TEACHER DASHBOARD -->
+<div id="teacher-screen" class="screen">
+  <div style="padding:16px;max-width:1000px;margin:0 auto;padding-top:60px;">
+    <div class="top-bar" style="padding-top:0;margin-bottom:16px;">
+      <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+      <span style="font-weight:700;font-size:17px;">📊 Teacher Dashboard</span>
+    </div>
+    <div class="t-tabs">
+      <button class="t-tab active" onclick="switchTeacherTab('results')" id="tab-results">📋 Results</button>
+      <button class="t-tab" onclick="switchTeacherTab('tasks')" id="tab-tasks">✏️ Manage Tasks</button>
+    </div>
+
+    <!-- Results Panel -->
+    <div id="panel-results" class="t-panel active">
+      <div class="t-header">
+        <div class="t-header-row">
+          <div>
+            <h2>All Student Results</h2>
+            <p>Only you can see this page.</p>
+          </div>
+          <button class="btn-excel" onclick="downloadExcel()">📥 Download Excel</button>
+        </div>
+      </div>
+      <div class="t-filters">
+        <input class="t-filter-inp" id="t-search" type="text" placeholder="🔍 Search student..." oninput="renderTeacherTable()" style="min-width:160px;"/>
+      </div>
+      <div class="results-table" id="t-table">
+        <div class="spinner-wrap"><div class="spin"></div></div>
+      </div>
+    </div>
+
+    <!-- Tasks Panel -->
+    <div id="panel-tasks" class="t-panel">
+      <div class="t-header" style="background:linear-gradient(135deg,#4F8EF7,#764ba2);">
+        <div class="t-header-row">
+          <div>
+            <h2>Task Manager</h2>
+            <p>Add, edit, hide or delete tasks. Copy a task link to send to students on WhatsApp.</p>
+          </div>
+          <button class="btn-excel" onclick="openAddTask()" style="color:#4F8EF7;">➕ Add Task</button>
+        </div>
+      </div>
+      <div class="t-filters">
+        <select class="t-filter-inp" id="tm-grade" onchange="renderTaskManager()">
+          <option value="">All Grades</option>
+          <option>Grade 5</option>
+          <option>Grade 6</option>
+        </select>
+        <select class="t-filter-inp" id="tm-type" onchange="renderTaskManager()">
+          <option value="">All Types</option>
+          <option value="answer_question">💬 Q&A</option>
+          <option value="read_aloud">📖 Read Aloud</option>
+          <option value="tell_story">📚 Story</option>
+          <option value="describe_image">🖼️ Describe</option>
+        </select>
+      </div>
+      <div class="task-list" id="task-list">
+        <div class="spinner-wrap"><div class="spin"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="link-copied" id="link-toast">✅ Link copied! Ready to send on WhatsApp.</div>
+
+<script>
+const API = 'https://superagent-a31aae2d.base44.app';
+const TEACHER_PASSWORD = 'speakup2026';
+const BASE_URL = window.location.href.split('?')[0];
+const TASKS_KEY = 'speakup_tasks_v3';
+
+let lang = 'en';
+let selectedGrade = null;
+let studentName = '';
+let currentTest = null;
+let allTests = [];
+let activeFilter = 'all';
+let recognition = null;
+let isRecording = false;
+let recStart = null;
+let timerIv = null;
+let transcript = '';
+let recDuration = 0;
+let teacherResults = [];
+let editingTaskId = null;
+
+// ====== ALL TASKS (original + new) ======
+const DEFAULT_TASKS = [
+  // ── Q&A ──
+  { id:'qa_01', title:'My Favourite Animal', prompt_text:'Talk about your favourite animal. What does it look like? Where does it live? Why do you like it?', prompt_type:'answer_question', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'qa_02', title:'My School Day', prompt_text:'Tell me about a typical day at school. What subjects do you have? What do you like most?', prompt_type:'answer_question', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'qa_03', title:'My Family', prompt_text:'Talk about your family. How many people are in your family? What do you like to do together?', prompt_type:'answer_question', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'qa_04', title:'Describe Your School', prompt_text:'Describe your school. What rooms does it have? What do you like most about your school?', prompt_type:'answer_question', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'qa_05', title:'My Favourite Food', prompt_text:'What is your favourite food? How is it made? When do you eat it? Why do you like it?', prompt_type:'answer_question', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'qa_06', title:'My Hobbies', prompt_text:'What do you like to do in your free time? Tell me about your favourite hobby and why you enjoy it.', prompt_type:'answer_question', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'qa_07', title:'My Best Friend', prompt_text:'Tell me about your best friend. What do they look like? What do you do together? Why are they special to you?', prompt_type:'answer_question', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'qa_08', title:'My Dream Job', prompt_text:'What job would you like to have when you grow up? Why? What would you do in that job?', prompt_type:'answer_question', grade:'Grade 6', time_limit_seconds:60, hidden:false },
+  { id:'qa_09', title:'My Favourite Season', prompt_text:'What is your favourite season of the year? What is the weather like? What activities do you enjoy in that season?', prompt_type:'answer_question', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'qa_10', title:'Technology in My Life', prompt_text:'How do you use technology every day? What is your favourite device or app? Is technology helpful or harmful?', prompt_type:'answer_question', grade:'Grade 6', time_limit_seconds:60, hidden:false },
+
+  // ── READ ALOUD ──
+  { id:'ra_01', title:'Read Aloud: The Sun', prompt_text:'The sun is a star at the centre of our solar system. It gives us light and heat. Without the sun, there would be no life on Earth. The sun is about 150 million kilometres away from us.', prompt_type:'read_aloud', grade:'both', time_limit_seconds:45, hidden:false },
+  { id:'ra_02', title:'Read Aloud: The Fox', prompt_text:'The quick brown fox jumps over the lazy dog. The fox is very clever and loves to run in the forest every morning before the sun rises.', prompt_type:'read_aloud', grade:'Grade 5', time_limit_seconds:45, hidden:false },
+  { id:'ra_03', title:'Read Aloud: Healthy Habits', prompt_text:'Eating well and exercising every day helps us stay healthy. We should eat fruits and vegetables, drink plenty of water, and sleep for at least eight hours every night.', prompt_type:'read_aloud', grade:'both', time_limit_seconds:45, hidden:false },
+  { id:'ra_04', title:'Read Aloud: The Ocean', prompt_text:'The ocean is home to millions of living creatures. Whales, dolphins, and colourful fish swim through the deep blue water. The ocean covers more than seventy percent of the Earth\'s surface.', prompt_type:'read_aloud', grade:'both', time_limit_seconds:45, hidden:false },
+  { id:'ra_05', title:'Read Aloud: My Village', prompt_text:'My village is a small and peaceful place. There are green fields, tall trees, and a clear river nearby. People here are kind and friendly. I love walking in the fields after school.', prompt_type:'read_aloud', grade:'Grade 5', time_limit_seconds:45, hidden:false },
+  { id:'ra_06', title:'Read Aloud: Animals in Danger', prompt_text:'Many animals around the world are in danger of disappearing forever. Pollution, hunting, and the loss of forests are the main reasons. We must work together to protect our wildlife before it is too late.', prompt_type:'read_aloud', grade:'Grade 6', time_limit_seconds:50, hidden:false },
+
+  // ── TELL A STORY ──
+  { id:'st_01', title:'A Lost Puppy', prompt_text:'Look at this situation: A small puppy is sitting alone outside a school, looking scared and hungry. What happens next? Who helps it? Tell the full story.', prompt_type:'tell_story', grade:'both', time_limit_seconds:90, hidden:false },
+  { id:'st_02', title:'The Magic Door', prompt_text:'Imagine you find a magic door in your classroom. When you open it, you see a completely different world. What do you see? What do you do? Tell the story.', prompt_type:'tell_story', grade:'both', time_limit_seconds:90, hidden:false },
+  { id:'st_03', title:'A Rainy Day Adventure', prompt_text:'One rainy day after school, you and your friend decided to explore an old, empty house near your street. What did you find inside? What happened? Tell the story.', prompt_type:'tell_story', grade:'both', time_limit_seconds:90, hidden:false },
+  { id:'st_04', title:'The New Student', prompt_text:'A new student joined your class today. They looked very shy and sat alone during lunch. What did you do? How did you help them? Tell the full story.', prompt_type:'tell_story', grade:'both', time_limit_seconds:90, hidden:false },
+  { id:'st_05', title:'The School Trip', prompt_text:'Your class went on a school trip to a farm. During the trip, something unexpected happened. What was it? How did everyone react? Tell the story.', prompt_type:'tell_story', grade:'both', time_limit_seconds:90, hidden:false },
+  { id:'st_06', title:'A Surprise Gift', prompt_text:'One morning you woke up and found a mysterious wrapped box outside your front door. There was no name on it. What was inside? Who sent it? Tell the story.', prompt_type:'tell_story', grade:'both', time_limit_seconds:90, hidden:false },
+  { id:'st_07', title:'The Talking Parrot', prompt_text:'Imagine your neighbour has a parrot that suddenly starts speaking perfect English and tells you a secret. What does it say? What do you do next? Tell the story.', prompt_type:'tell_story', grade:'Grade 6', time_limit_seconds:90, hidden:false },
+  { id:'st_08', title:'Lost in the City', prompt_text:'You are visiting a big city with your family. While shopping, you get separated and find yourself lost. How do you find your way back? Tell the story.', prompt_type:'tell_story', grade:'Grade 6', time_limit_seconds:90, hidden:false },
+
+  // ── DESCRIBE ──
+  { id:'de_01', title:'Describe: Your Bedroom', prompt_text:'Describe your bedroom in detail. What furniture is in it? What colours do you see? What makes it special or comfortable?', prompt_type:'describe_image', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'de_02', title:'Describe: A Market Scene', prompt_text:'Imagine you are standing in a busy market. Describe everything you can see, hear, and smell. What are the people doing? What is for sale?', prompt_type:'describe_image', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'de_03', title:'Describe: A Park in Spring', prompt_text:'Describe a park in spring. What does the weather feel like? What can you see — trees, flowers, people? What sounds do you hear?', prompt_type:'describe_image', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'de_04', title:'Describe: A Sports Day', prompt_text:'Describe a sports day at school. What games and activities are happening? Who is winning? How do the students feel?', prompt_type:'describe_image', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'de_05', title:'Describe: Your Kitchen', prompt_text:'Describe your kitchen at home. What appliances are there? What does it smell like when food is cooking? What do you like about it?', prompt_type:'describe_image', grade:'Grade 5', time_limit_seconds:60, hidden:false },
+  { id:'de_06', title:'Describe: A Birthday Party', prompt_text:'Describe a birthday party you attended or imagine one. What decorations are there? What food is served? How do the guests feel?', prompt_type:'describe_image', grade:'both', time_limit_seconds:60, hidden:false },
+  { id:'de_07', title:'Describe: Your Ideal Classroom', prompt_text:'Describe your ideal classroom. What does it look like? What technology or furniture would it have? Why would it be a great place to learn?', prompt_type:'describe_image', grade:'Grade 6', time_limit_seconds:60, hidden:false },
+  { id:'de_08', title:'Describe: A Beach Scene', prompt_text:'Imagine you are standing on a beautiful beach. Describe what you can see, hear, and feel. What are people doing? What is the weather like?', prompt_type:'describe_image', grade:'both', time_limit_seconds:60, hidden:false },
+];
+
+// ====== URL PARAMS ======
+function getUrlParams() {
+  const p = new URLSearchParams(window.location.search);
+  return { task: p.get('task'), grade: p.get('grade') };
+}
+
+// ====== LANG ======
+function toggleLang() {
+  lang = lang === 'en' ? 'ar' : 'en';
+  document.getElementById('lang-toggle').textContent = lang === 'en' ? 'عربي' : 'English';
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  applyLang();
+}
+function applyLang() {
+  document.querySelectorAll('[data-en]').forEach(el => {
+    if (!el.children.length) el.textContent = el.dataset[lang];
+  });
+  document.querySelectorAll('[data-placeholder-en]').forEach(el => {
+    el.placeholder = lang === 'en' ? el.dataset.placeholderEn : el.dataset.placeholderAr;
+  });
+}
+
+// ====== SCREENS ======
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ====== HOME ======
+function selectGrade(g) {
+  selectedGrade = g;
+  document.getElementById('g5btn').classList.toggle('selected', g==='Grade 5');
+  document.getElementById('g6btn').classList.toggle('selected', g==='Grade 6');
+}
+
+function startApp() {
+  studentName = document.getElementById('sname').value.trim();
+  if (!selectedGrade) { alert(lang==='en'?'Please select your grade!':'يرجى اختيار صفك!'); return; }
+  if (!studentName)   { alert(lang==='en'?'Please enter your name!':'يرجى إدخال اسمك!'); return; }
+  document.getElementById('name-display').textContent = studentName;
+  loadTests();
+  showScreen('test-select-screen');
+}
+
+// ====== TEACHER MODAL ======
+function openTeacherModal() {
+  document.getElementById('teacher-modal').classList.add('open');
+  document.getElementById('teacher-pw-input').value = '';
+  document.getElementById('pw-err').style.display = 'none';
+  setTimeout(() => document.getElementById('teacher-pw-input').focus(), 100);
+}
+function closeTeacherModal() { document.getElementById('teacher-modal').classList.remove('open'); }
+function checkTeacherPw() {
+  if (document.getElementById('teacher-pw-input').value === TEACHER_PASSWORD) {
+    closeTeacherModal();
+    loadTeacherResults();
+    renderTaskManager();
+    showScreen('teacher-screen');
+  } else {
+    document.getElementById('pw-err').style.display = 'block';
+    document.getElementById('teacher-pw-input').value = '';
+    document.getElementById('teacher-pw-input').focus();
+  }
+}
+
+// ====== TEACHER TABS ======
+function switchTeacherTab(tab) {
+  ['results','tasks'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('panel-'+t).classList.toggle('active', t===tab);
+  });
+}
+
+// ====== LOCAL TASK STORAGE ======
+function getTasks() {
+  try {
+    const raw = localStorage.getItem(TASKS_KEY);
+    return raw ? JSON.parse(raw) : DEFAULT_TASKS;
+  } catch(e) { return DEFAULT_TASKS; }
+}
+function saveTasks(tasks) { localStorage.setItem(TASKS_KEY, JSON.stringify(tasks)); }
+function generateId() { return 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); }
+
+// ====== LOAD TESTS ======
+function loadTests() {
+  const params = getUrlParams();
+  const tasks = getTasks().filter(t => !t.hidden);
+  let filtered = tasks.filter(t => t.grade === selectedGrade || t.grade === 'both');
+
+  if (params.task) {
+    const specific = filtered.find(t => t.id === params.task);
+    if (specific) {
+      filtered = [specific];
+      const banner = document.getElementById('task-only-banner');
+      banner.classList.add('show');
+      document.getElementById('task-only-text').textContent = `📌 Your teacher sent you: "${specific.title}"`;
+      document.getElementById('filter-row-wrap').style.display = 'none';
+    }
+  } else {
+    document.getElementById('task-only-banner').classList.remove('show');
+    document.getElementById('filter-row-wrap').style.display = '';
+  }
+  allTests = filtered;
+  renderTests();
+}
+
+function filterTests(type) {
+  activeFilter = type;
+  document.querySelectorAll('.ftab').forEach(t => t.classList.toggle('active', t.dataset.filter===type));
+  renderTests();
+}
+
+function renderTests() {
+  const grid = document.getElementById('tests-grid');
+  const list = activeFilter==='all' ? allTests : allTests.filter(t => t.prompt_type===activeFilter);
+  if (!list.length) { grid.innerHTML = '<p style="padding:20px;color:var(--light)">No tasks available.</p>'; return; }
+  grid.innerHTML = list.map(t => {
+    const safe = JSON.stringify(t).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+    return `<div class="test-card" onclick='startTest(JSON.parse(this.dataset.t))' data-t="${safe}">
+      <span class="badge ${badgeClass(t.prompt_type)}">${typeLabel(t.prompt_type)}</span>
+      <h3>${escHtml(t.title)}</h3>
+      <p>${escHtml(t.prompt_text.slice(0,85))}…</p>
+      <div class="test-time">⏱ ${t.time_limit_seconds||60}s</div>
+    </div>`;
+  }).join('');
+}
+
+function badgeClass(t) { return {answer_question:'b-qa',read_aloud:'b-read',tell_story:'b-story',describe_image:'b-desc'}[t]||'b-qa'; }
+function typeLabel(t)  { return {answer_question:'💬 Q&A',read_aloud:'📖 Read Aloud',tell_story:'📚 Story',describe_image:'🖼️ Describe'}[t]||t; }
+function escHtml(s)    { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ====== SPEAKING ======
+function startTest(test) {
+  currentTest = test; transcript = ''; recDuration = 0;
+  document.getElementById('spk-title').textContent = test.title;
+  document.getElementById('prompt-text').textContent = test.prompt_text;
+  document.getElementById('timer-num').textContent = '0:00';
+  document.getElementById('timer-num').className = 'timer-num';
+  document.getElementById('transcript-box').innerHTML = '<span style="color:var(--light);font-style:italic;">Your words will appear here as you speak...</span>';
+  document.getElementById('mic-btn').className = 'mic-btn idle';
+  document.getElementById('rec-dot').className = 'rec-dot';
+  document.getElementById('submit-btn').className = 'submit-btn';
+  document.getElementById('rec-status').textContent = 'Tap the mic to start';
+  document.getElementById('no-support').style.display = ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) ? 'none' : 'block';
+  showScreen('speaking-screen');
+}
+
+function setupSR() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  const r = new SR();
+  r.continuous = true; r.interimResults = true; r.lang = 'en-US';
+  r.onresult = (e) => {
+    let fin='', int='';
+    for (let i=e.resultIndex;i<e.results.length;i++) {
+      if (e.results[i].isFinal) fin += e.results[i][0].transcript+' ';
+      else int += e.results[i][0].transcript;
+    }
+    transcript += fin;
+    document.getElementById('transcript-box').innerHTML =
+      `<span style="color:var(--text)">${transcript}</span><span style="color:var(--light);font-style:italic">${int}</span>`;
+  };
+  r.onerror = (e) => { if(e.error!=='no-speech') console.warn(e.error); };
+  r.onend = () => { if(isRecording) { try{r.start();}catch(e){} } };
+  return r;
+}
+
+function toggleRec() { isRecording ? stopRec() : startRec(); }
+
+function startRec() {
+  recognition = setupSR(); isRecording = true; recStart = Date.now();
+  document.getElementById('mic-btn').className = 'mic-btn recording';
+  document.getElementById('rec-dot').className = 'rec-dot on';
+  document.getElementById('rec-status').textContent = 'Recording… tap to stop';
+  if (recognition) { try{recognition.start();}catch(e){} }
+  const limit = currentTest?.time_limit_seconds || 60;
+  timerIv = setInterval(() => {
+    const el = Math.floor((Date.now()-recStart)/1000); recDuration = el;
+    const m=Math.floor(el/60), s=el%60;
+    const td = document.getElementById('timer-num');
+    td.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    if (el >= limit-10) td.className = 'timer-num warn';
+    if (el >= limit) stopRec();
+  }, 1000);
+}
+
+function stopRec() {
+  if (!isRecording) return;
+  isRecording = false; clearInterval(timerIv);
+  if (recognition) { try{recognition.stop();}catch(e){} }
+  document.getElementById('mic-btn').className = 'mic-btn done';
+  document.getElementById('rec-dot').className = 'rec-dot';
+  document.getElementById('rec-status').textContent = 'Done! Submit for your score.';
+  if (transcript.trim().length > 0) document.getElementById('submit-btn').className = 'submit-btn show';
+}
+
+async function submitSpeech() {
+  if (!transcript.trim()) { alert('No speech detected! Please try again.'); return; }
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = 'Analysing… ⏳'; btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/functions/analyzeSpeech`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ transcript:transcript.trim(), duration_seconds:recDuration, grade:selectedGrade, student_name:studentName, test_id:currentTest?.id, test_title:currentTest?.title })
+    });
+    const data = await res.json();
+    if (data.ok) showResults(data);
+    else alert('Error: '+(data.error||'Unknown error'));
+  } catch(e) { alert('Connection error. Please try again.'); }
+  btn.disabled = false; btn.textContent = 'Get My Score! ⭐';
+}
+
+// ====== RESULTS ======
+function showResults(data) {
+  const s = data.scores;
+  document.getElementById('res-name').textContent = studentName + ' · ' + selectedGrade;
+  document.getElementById('ring-num').textContent = s.overall;
+  document.getElementById('feedback-p').textContent = data.feedback;
+  document.getElementById('transcript-res-text').textContent = data.details.transcript;
+  document.getElementById('s-words').textContent = data.details.word_count;
+  document.getElementById('s-wpm').textContent   = data.details.words_per_minute;
+  document.getElementById('s-secs').textContent  = recDuration;
+  setTimeout(() => {
+    setBar('bf','vf',s.fluency); setBar('bv','vv',s.vocabulary);
+    setBar('bgr','vg',s.grammar); setBar('bp','vp',s.pronunciation);
+  }, 150);
+  showScreen('results-screen');
+}
+function setBar(barId,valId,score) {
+  document.getElementById(barId).style.width=(score/9*100)+'%';
+  document.getElementById(valId).textContent=score+'/9';
+}
+function retryTest() { if(currentTest) startTest(currentTest); }
+
+// ====== TEACHER RESULTS ======
+async function loadTeacherResults() {
+  document.getElementById('t-table').innerHTML = '<div class="spinner-wrap"><div class="spin"></div></div>';
+  try {
+    const res = await fetch(`${API}/functions/getResults`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const data = await res.json();
+    teacherResults = (data.results||[]).sort((a,b)=>new Date(b.created_date)-new Date(a.created_date));
+    renderTeacherTable();
+  } catch(e) {
+    document.getElementById('t-table').innerHTML = '<p style="padding:24px;color:var(--secondary)">Could not load results.</p>';
+  }
+}
+function renderTeacherTable() {
+  const search = (document.getElementById('t-search')?.value||'').toLowerCase();
+  let rows = teacherResults.filter(r => !search || r.student_name?.toLowerCase().includes(search));
+  if (!rows.length) { document.getElementById('t-table').innerHTML = '<div class="empty-state">No results yet.</div>'; return; }
+  document.getElementById('t-table').innerHTML = `<table>
+    <thead><tr><th>Student</th><th>Test</th><th>Overall</th><th>Fluency</th><th>Vocab</th><th>Grammar</th><th>WPM</th><th>Date</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td><strong>${escHtml(r.student_name||'-')}</strong></td>
+      <td style="max-width:160px;">${escHtml(r.test_title||'-')}</td>
+      <td><span class="sbadge ${r.overall_score>=7?'s-hi':r.overall_score>=5?'s-mid':'s-lo'}">${r.overall_score}/9</span></td>
+      <td>${r.fluency_score||'-'}</td><td>${r.vocabulary_score||'-'}</td><td>${r.grammar_score||'-'}</td>
+      <td>${r.words_per_minute||'-'}</td>
+      <td style="white-space:nowrap;">${r.created_date?new Date(r.created_date).toLocaleDateString('en-GB'):'-'}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+function downloadExcel() { window.open(`${API}/functions/exportResultsExcel`,'_blank'); }
+
+// ====== TASK MANAGER ======
+function renderTaskManager() {
+  const tasks = getTasks();
+  const gf = document.getElementById('tm-grade')?.value||'';
+  const tf = document.getElementById('tm-type')?.value||'';
+  let list = tasks;
+  if (gf) list = list.filter(t => t.grade===gf||t.grade==='both');
+  if (tf) list = list.filter(t => t.prompt_type===tf);
+  const c = document.getElementById('task-list');
+  if (!list.length) { c.innerHTML='<div class="empty-state">No tasks. Click "Add Task".</div>'; return; }
+  c.innerHTML = list.map(t=>`
+    <div class="task-item ${t.hidden?'hidden-task':''}">
+      <div class="task-item-top">
+        <div class="task-item-info">
+          <h4>${escHtml(t.title)} ${t.hidden?'<span style="font-size:11px;color:var(--light)">(hidden)</span>':''}</h4>
+          <p>${escHtml(t.prompt_text)}</p>
+          <div class="task-meta">
+            <span class="badge ${badgeClass(t.prompt_type)}">${typeLabel(t.prompt_type)}</span>
+            <span style="font-size:12px;color:var(--light);font-weight:700;">${t.grade==='both'?'Gr.5&6':t.grade} · ⏱${t.time_limit_seconds}s</span>
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="task-btn task-btn-link" onclick="copyTaskLink('${t.id}')">🔗 Link</button>
+          <button class="task-btn task-btn-edit" onclick="openEditTask('${t.id}')">✏️ Edit</button>
+          <button class="task-btn task-btn-hide" onclick="toggleHideTask('${t.id}')">${t.hidden?'👁 Show':'🙈 Hide'}</button>
+          <button class="task-btn task-btn-del"  onclick="deleteTask('${t.id}')">🗑 Del</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function copyTaskLink(taskId) {
+  const url = `${BASE_URL}?task=${taskId}`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(()=>showToast('✅ Link copied! Send it on WhatsApp.'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('✅ Link copied!');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('link-toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+function toggleHideTask(id) {
+  const tasks = getTasks(); const t = tasks.find(x=>x.id===id);
+  if(t){t.hidden=!t.hidden; saveTasks(tasks); renderTaskManager();}
+}
+function deleteTask(id) {
+  if(!confirm('Delete this task?')) return;
+  saveTasks(getTasks().filter(x=>x.id!==id)); renderTaskManager();
+}
+
+// ====== TASK FORM ======
+function openAddTask() {
+  editingTaskId=null;
+  document.getElementById('task-form-title').textContent='➕ Add New Task';
+  document.getElementById('tf-title').value='';
+  document.getElementById('tf-prompt').value='';
+  document.getElementById('tf-type').value='answer_question';
+  document.getElementById('tf-grade').value='both';
+  document.getElementById('tf-time').value='60';
+  document.getElementById('task-form-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('tf-title').focus(),100);
+}
+function openEditTask(id) {
+  const t = getTasks().find(x=>x.id===id); if(!t) return;
+  editingTaskId=id;
+  document.getElementById('task-form-title').textContent='✏️ Edit Task';
+  document.getElementById('tf-title').value=t.title;
+  document.getElementById('tf-prompt').value=t.prompt_text;
+  document.getElementById('tf-type').value=t.prompt_type;
+  document.getElementById('tf-grade').value=t.grade;
+  document.getElementById('tf-time').value=t.time_limit_seconds;
+  document.getElementById('task-form-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('tf-title').focus(),100);
+}
+function closeTaskForm() { document.getElementById('task-form-modal').classList.remove('open'); editingTaskId=null; }
+function saveTask() {
+  const title=document.getElementById('tf-title').value.trim();
+  const prompt=document.getElementById('tf-prompt').value.trim();
+  const type=document.getElementById('tf-type').value;
+  const grade=document.getElementById('tf-grade').value;
+  const time=parseInt(document.getElementById('tf-time').value)||60;
+  if(!title||!prompt){alert('Please fill in the title and prompt.');return;}
+  const tasks=getTasks();
+  if(editingTaskId){
+    const t=tasks.find(x=>x.id===editingTaskId);
+    if(t){t.title=title;t.prompt_text=prompt;t.prompt_type=type;t.grade=grade;t.time_limit_seconds=time;}
+  } else {
+    tasks.push({id:generateId(),title,prompt_text:prompt,prompt_type:type,grade,time_limit_seconds:time,hidden:false});
+  }
+  saveTasks(tasks); closeTaskForm(); renderTaskManager();
+  showToast(editingTaskId?'✅ Task updated!':'✅ Task added!');
+}
+
+// ====== INIT ======
+window.addEventListener('DOMContentLoaded', () => {
+  if (!localStorage.getItem(TASKS_KEY)) saveTasks(DEFAULT_TASKS);
+  const params = getUrlParams();
+  if (params.grade) selectGrade(params.grade);
+});
+</script>
+</body>
+</html>
